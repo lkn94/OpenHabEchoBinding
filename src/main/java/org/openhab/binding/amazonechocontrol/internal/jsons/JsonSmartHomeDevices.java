@@ -16,7 +16,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
- * @author Lukas Knoller - Initial contribution
+ * @author Lukas Knoeller - Initial contribution
  */
 @NonNullByDefault
 public class JsonSmartHomeDevices {
@@ -27,7 +27,8 @@ public class JsonSmartHomeDevices {
         public @Nullable String friendlyDescription;
         public @Nullable String friendlyName;
         public @Nullable String reachability;
+        public @Nullable JsonSmartHomeDeviceAlias @Nullable [] alias;
     }
 
-    public @Nullable SmartHomeDevice @Nullable [] smarthomeDevice;
+    public @Nullable SmartHomeDevice @Nullable [] smarthomeDevices;
 }

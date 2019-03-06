@@ -82,6 +82,7 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
     private @Nullable Connection connection;
     private @Nullable WebSocketConnection webSocketConnection;
     private final Set<EchoHandler> echoHandlers = new HashSet<>();
+    private final Set<DeviceHandler> deviceHandlers = new HashSet<>();
     private final Set<FlashBriefingProfileHandler> flashBriefingProfileHandlers = new HashSet<>();
     private final Object synchronizeConnection = new Object();
     private Map<String, Device> jsonSerialNumberDeviceMapping = new HashMap<>();
@@ -142,6 +143,15 @@ public class AccountHandler extends BaseBridgeHandler implements IWebSocketComma
     public void addEchoHandler(EchoHandler echoHandler) {
         synchronized (echoHandlers) {
             if (!echoHandlers.add(echoHandler)) {
+                return;
+            }
+        }
+        forceCheckData();
+    }
+
+    public void addDeviceHandler(DeviceHandler deviceHandler) {
+        synchronized (deviceHandlers) {
+            if (!deviceHandlers.add(deviceHandler)) {
                 return;
             }
         }

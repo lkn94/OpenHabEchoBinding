@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -86,7 +87,7 @@ import org.openhab.binding.amazonechocontrol.internal.jsons.JsonRegisterAppRespo
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Success;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Tokens;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonRenewTokenResponse;
-import org.openhab.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices;
+import org.openhab.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDeviceAlias;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonStartRoutineRequest;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonUsersMeResponse;
@@ -100,6 +101,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 /**
@@ -835,16 +837,41 @@ public class Connection {
     }
 
     public List<SmartHomeDevice> getSmarthomeDeviceList() throws IOException, URISyntaxException {
-        String json = getSmarthomeDeviceListJson();
-        JsonSmartHomeDevices smarthomeDevices = parseJson(json, JsonSmartHomeDevices.class);
-        SmartHomeDevice[] result = smarthomeDevices.smarthomeDevice;
-        if (result == null) {
+        JsonObject json = new JsonParser().parse(getSmarthomeDeviceListJson()).getAsJsonObject();
+        JsonObject smartHomeDevices = json.get("networkDetail").getAsJsonObject().get("locationDetails")
+                .getAsJsonObject().get("locationDetails").getAsJsonObject().get("Default_Location").getAsJsonObject()
+                .get("amazonBridgeDetails").getAsJsonObject().get("amazonBridgeDetails").getAsJsonObject()
+                .get("LambdaBridge_AAA/SonarCloudService").getAsJsonObject().get("applianceDetails").getAsJsonObject()
+                .get("applianceDetails").getAsJsonObject();
+        // TODO ->
+        ArrayList<SmartHomeDevice> smartHomeDeviceArray = new ArrayList<>();
+        Set<String> keys = smartHomeDevices.keySet();
+        for (String key : keys) {
+            JsonObject keyObject = smartHomeDevices.get(key).getAsJsonObject();
+            // logger.error(keyObject.get("friendlyName").getAsString());
+            SmartHomeDevice shd = parseJson(keyObject.toString(), SmartHomeDevice.class);
+            shd.alias = new JsonSmartHomeDeviceAlias[1];
+            shd.alias[0] = new JsonSmartHomeDeviceAlias(
+                    keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("friendlyName").toString(),
+                    keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("enabled").getAsBoolean());
+
+            smartHomeDeviceArray.add(shd);
+        }
+
+        logger.error(smartHomeDeviceArray.toString());
+
+        if (smartHomeDeviceArray.isEmpty()) {
             return new ArrayList<>();
         }
-        return new ArrayList<>(Arrays.asList(result));
+
+        return smartHomeDeviceArray;
+        // return new ArrayList<>(smartHomeDeviceArray);
+        // return new ArrayList<>(Arrays.asList(result));
     }
 
     public List<Device> getDeviceList() throws IOException, URISyntaxException {
+        // CAUTION
+        List<SmartHomeDevice> test = this.getSmarthomeDeviceList();
         String json = getDeviceListJson();
         JsonDevices devices = parseJson(json, JsonDevices.class);
         Device[] result = devices.devices;
@@ -855,7 +882,10 @@ public class Connection {
     }
 
     public String getSmarthomeDeviceListJson() throws IOException, URISyntaxException {
-        String json = makeRequestAndReturnString(alexaServer + "/api/");
+        String json = makeRequestAndReturnString(alexaServer + "/api/phoenix?includeRelationships=true");
+        json = json.replace("\\", "");
+        json = json.replace("\"{", "{");
+        json = json.replace("}\"", "}");
         return json;
     }
 
