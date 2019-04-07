@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -90,7 +91,9 @@ import org.openhab.binding.amazonechocontrol.internal.jsons.JsonRegisterAppRespo
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonRegisterAppResponse.Tokens;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonRenewTokenResponse;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDeviceAlias;
+import org.openhab.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonSmartHomeDevices.SmartHomeDevice;
+import org.openhab.binding.amazonechocontrol.internal.jsons.JsonSmartHomeGroups.SmartHomeGroup;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonStartRoutineRequest;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonUsersMeResponse;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonWakeWords;
@@ -845,34 +848,76 @@ public class Connection {
                 .get("amazonBridgeDetails").getAsJsonObject().get("amazonBridgeDetails").getAsJsonObject()
                 .get("LambdaBridge_AAA/SonarCloudService").getAsJsonObject().get("applianceDetails").getAsJsonObject()
                 .get("applianceDetails").getAsJsonObject();
-        logger.error("Smart Home Devices");
-        logger.error(smartHomeDevices.toString());
         // TODO ->
         ArrayList<SmartHomeDevice> smartHomeDeviceArray = new ArrayList<>();
         Set<String> keys = smartHomeDevices.keySet();
         for (String key : keys) {
             JsonObject keyObject = smartHomeDevices.get(key).getAsJsonObject();
-            // logger.error(keyObject.get("friendlyName").getAsString());
             SmartHomeDevice shd = parseJson(keyObject.toString(), SmartHomeDevice.class);
-            shd.alias = new JsonSmartHomeDeviceAlias[1];
-            shd.alias[0] = new JsonSmartHomeDeviceAlias(
-                    keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("friendlyName")
-                            .getAsString(),
-                    keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("enabled").getAsBoolean());
-
+            if (keyObject.get("aliases").getAsJsonArray().size() > 0) {
+                shd.alias = new JsonSmartHomeDeviceAlias[1];
+                shd.alias[0] = new JsonSmartHomeDeviceAlias(
+                        keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("friendlyName")
+                                .getAsString(),
+                        keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("enabled")
+                                .getAsBoolean());
+            }
+            if (keyObject.get("tags").getAsJsonObject().get("tagNameToValueSetMap").getAsJsonObject().size() > 0) {
+                shd.groupIdentity = keyObject.get("tags").getAsJsonObject().get("tagNameToValueSetMap")
+                        .getAsJsonObject().get("groupIdentity").getAsJsonArray().get(0).getAsString();
+            }
             smartHomeDeviceArray.add(shd);
         }
 
-        // logger.error("Device");
-        // logger.error(smartHomeDeviceArray.get(0).alias[0].friendlyName.toString());
+        List<SmartHomeGroup> groups = this.getSmarthomeDeviceGroups();
+        for (SmartHomeGroup group : groups) {
+            String uuid = UUID.randomUUID().toString();
+            JsonSmartHomeDeviceAlias[] alias = new JsonSmartHomeDeviceAlias[1];
+            ArrayList<SmartHomeDevice> smartDevices = new ArrayList<>();
+
+            for (int i = 0; i < smartHomeDeviceArray.size(); ++i) {
+                if (smartHomeDeviceArray.get(i).groupIdentity != null && group.applianceGroupIdentifier.value != null) {
+                    if (smartHomeDeviceArray.get(i).groupIdentity.equals(group.applianceGroupIdentifier.value)) {
+                        smartDevices.add(smartHomeDeviceArray.get(i));
+                        alias[0] = new JsonSmartHomeDeviceAlias(group.applianceGroupName, true);
+                    }
+                }
+            }
+
+            SmartHomeDevice[] smartDevicesArray = new SmartHomeDevice[smartDevices.size()];
+            smartDevices.toArray(smartDevicesArray);
+
+            SmartHomeDevice shdGroup = new JsonSmartHomeDevices().new SmartHomeDevice(uuid, "Amazon",
+                    "Amazon Light Group", group.applianceGroupName, "reachable", uuid, alias, smartDevicesArray);
+
+            smartHomeDeviceArray.add(shdGroup);
+        }
 
         if (smartHomeDeviceArray.isEmpty()) {
             return new ArrayList<>();
         }
 
         return smartHomeDeviceArray;
-        // return new ArrayList<>(smartHomeDeviceArray);
-        // return new ArrayList<>(Arrays.asList(result));
+    }
+
+    public List<SmartHomeGroup> getSmarthomeDeviceGroups() throws IOException, URISyntaxException {
+        JsonObject json = new JsonParser().parse(getSmarthomeDeviceListJson()).getAsJsonObject();
+        JsonObject smartHomeGroups = json.get("networkDetail").getAsJsonObject().get("locationDetails")
+                .getAsJsonObject().get("locationDetails").getAsJsonObject().get("Default_Location").getAsJsonObject()
+                .get("applianceGroups").getAsJsonObject().get("applianceGroups").getAsJsonObject();
+        ArrayList<SmartHomeGroup> smartHomeGroupArray = new ArrayList<>();
+        Set<String> keys = smartHomeGroups.keySet();
+        for (String key : keys) {
+            JsonObject keyObject = smartHomeGroups.get(key).getAsJsonObject();
+            SmartHomeGroup shg = parseJson(keyObject.toString(), SmartHomeGroup.class);
+            smartHomeGroupArray.add(shg);
+        }
+
+        if (smartHomeGroupArray.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return smartHomeGroupArray;
     }
 
     public List<JsonColors> getEchoLightColors() {
@@ -911,8 +956,6 @@ public class Connection {
         json = json.replace("\\", "");
         json = json.replace("\"{", "{");
         json = json.replace("}\"", "}");
-        logger.error("HIER");
-        logger.error(json);
         return json;
     }
 

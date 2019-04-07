@@ -4,6 +4,7 @@ import static org.openhab.binding.amazonechocontrol.internal.AmazonEchoControlBi
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -138,15 +139,25 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
             }
 
             String lightName = null;
-            if (smartHomeDevice.alias != null) {
+            if (smartHomeDevice.alias != null && smartHomeDevice.alias[0] != null) {
                 lightName = smartHomeDevice.alias[0].friendlyName;
             } else {
                 lightName = smartHomeDevice.friendlyName;
             }
 
+            Map<String, Object> subDevices = new HashMap<String, Object>();
+            subDevices.put(DEVICE_PROPERTY_LIGHT_ENTITY_ID, smartHomeDevice.entityId);
+            if (smartHomeDevice.groupDevices != null) {
+                int subDeviceCounter = 0;
+                for (SmartHomeDevice d : smartHomeDevice.groupDevices) {
+                    subDevices.put("SubDevice" + subDeviceCounter, d.entityId);
+                    ++subDeviceCounter;
+                }
+            }
+
+            // .withProperty(DEVICE_PROPERTY_LIGHT_ENTITY_ID, smartHomeDevice.entityId)
             DiscoveryResult result = DiscoveryResultBuilder.create(thingUID).withLabel(lightName)
-                    .withProperty(DEVICE_PROPERTY_LIGHT_ENTITY_ID, smartHomeDevice.entityId).withBridge(bridgeThingUID)
-                    .build();
+                    .withProperties(subDevices).withBridge(bridgeThingUID).build();
 
             logger.debug("Device[{]: {}] found. Mapped to thing type {}", smartHomeDevice.friendlyName,
                     smartHomeDevice.applianceId, thingTypeId.getAsString());

@@ -28,7 +28,22 @@ public class JsonSmartHomeDevices {
         public @Nullable String friendlyName;
         public @Nullable String reachability;
         public @Nullable String entityId;
+        public @Nullable String groupIdentity;
         public @Nullable JsonSmartHomeDeviceAlias @Nullable [] alias;
+        public @Nullable SmartHomeDevice @Nullable [] groupDevices;
+
+        public SmartHomeDevice(String applianceId, String manufacturerName, String friendlyDescription,
+                String friendlyName, String reachability, String entityId, JsonSmartHomeDeviceAlias[] alias,
+                SmartHomeDevice[] groupDevices) {
+            this.applianceId = applianceId;
+            this.manufacturerName = manufacturerName;
+            this.friendlyDescription = friendlyDescription;
+            this.friendlyName = friendlyName;
+            this.reachability = reachability;
+            this.entityId = entityId;
+            this.alias = alias;
+            this.groupDevices = groupDevices;
+        }
     }
 
     public @Nullable SmartHomeDevice @Nullable [] smarthomeDevices;
