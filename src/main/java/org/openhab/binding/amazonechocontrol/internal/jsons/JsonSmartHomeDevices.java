@@ -27,6 +27,7 @@ public class JsonSmartHomeDevices {
         public @Nullable String friendlyDescription;
         public @Nullable String friendlyName;
         public @Nullable String reachability;
+        public @Nullable String entityId;
         public @Nullable JsonSmartHomeDeviceAlias @Nullable [] alias;
     }
 

@@ -42,9 +42,11 @@ public class AmazonEchoControlBindingConstants {
     public static final ThingTypeUID THING_TYPE_FLASH_BRIEFING_PROFILE = new ThingTypeUID(BINDING_ID,
             "flashbriefingprofile");
 
+    public static final ThingTypeUID THING_TYPE_LIGHT = new ThingTypeUID(BINDING_ID, "light");
+
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = new HashSet<ThingTypeUID>(
             Arrays.asList(THING_TYPE_ACCOUNT, THING_TYPE_ECHO, THING_TYPE_ECHO_SPOT, THING_TYPE_ECHO_SHOW,
-                    THING_TYPE_ECHO_WHA, THING_TYPE_FLASH_BRIEFING_PROFILE));
+                    THING_TYPE_ECHO_WHA, THING_TYPE_FLASH_BRIEFING_PROFILE, THING_TYPE_LIGHT));
 
     // List of all Channel ids
     public static final String CHANNEL_PLAYER = "player";
@@ -79,6 +81,7 @@ public class AmazonEchoControlBindingConstants {
     public static final String CHANNEL_MEDIA_PROGRESS_TIME = "mediaProgressTime";
     public static final String CHANNEL_ASCENDING_ALARM = "ascendingAlarm";
     public static final String CHANNEL_NOTIFICATION_VOLUME = "notificationVolume";
+    public static final String CHANNEL_LIGHT_STATE = "lightState";
 
     public static final String CHANNEL_SAVE = "save";
     public static final String CHANNEL_ACTIVE = "active";
@@ -99,6 +102,7 @@ public class AmazonEchoControlBindingConstants {
     public static final String DEVICE_PROPERTY_SERIAL_NUMBER = "serialNumber";
     public static final String DEVICE_PROPERTY_FAMILY = "deviceFamily";
     public static final String DEVICE_PROPERTY_FLASH_BRIEFING_PROFILE = "configurationJson";
+    public static final String DEVICE_PROPERTY_LIGHT_ENTITY_ID = "entityId";
 
     // Other
     public static final String FLASH_BRIEFING_COMMAND_PREFIX = "FlashBriefing.";

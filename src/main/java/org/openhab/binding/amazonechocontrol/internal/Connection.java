@@ -60,6 +60,8 @@ import org.openhab.binding.amazonechocontrol.internal.jsons.JsonAutomation;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonAutomation.Payload;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonAutomation.Trigger;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonBluetoothStates;
+import org.openhab.binding.amazonechocontrol.internal.jsons.JsonColorTemperature;
+import org.openhab.binding.amazonechocontrol.internal.jsons.JsonColors;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonDeviceNotificationState.DeviceNotificationState;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonDevices;
@@ -843,6 +845,8 @@ public class Connection {
                 .get("amazonBridgeDetails").getAsJsonObject().get("amazonBridgeDetails").getAsJsonObject()
                 .get("LambdaBridge_AAA/SonarCloudService").getAsJsonObject().get("applianceDetails").getAsJsonObject()
                 .get("applianceDetails").getAsJsonObject();
+        logger.error("Smart Home Devices");
+        logger.error(smartHomeDevices.toString());
         // TODO ->
         ArrayList<SmartHomeDevice> smartHomeDeviceArray = new ArrayList<>();
         Set<String> keys = smartHomeDevices.keySet();
@@ -852,13 +856,15 @@ public class Connection {
             SmartHomeDevice shd = parseJson(keyObject.toString(), SmartHomeDevice.class);
             shd.alias = new JsonSmartHomeDeviceAlias[1];
             shd.alias[0] = new JsonSmartHomeDeviceAlias(
-                    keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("friendlyName").toString(),
+                    keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("friendlyName")
+                            .getAsString(),
                     keyObject.get("aliases").getAsJsonArray().get(0).getAsJsonObject().get("enabled").getAsBoolean());
 
             smartHomeDeviceArray.add(shd);
         }
 
-        logger.error(smartHomeDeviceArray.toString());
+        // logger.error("Device");
+        // logger.error(smartHomeDeviceArray.get(0).alias[0].friendlyName.toString());
 
         if (smartHomeDeviceArray.isEmpty()) {
             return new ArrayList<>();
@@ -869,9 +875,28 @@ public class Connection {
         // return new ArrayList<>(Arrays.asList(result));
     }
 
+    public List<JsonColors> getEchoLightColors() {
+        ArrayList<JsonColors> colors = new ArrayList<>();
+        String[] stringColors = { "red", "crimson", "salmon", "orange", "gold", "yellow", "green", "turquoise", "cyan",
+                "sky_blue", "blue", "purple", "magenta", "pink", "lavender" };
+        for (String color : stringColors) {
+            colors.add(new JsonColors(color));
+        }
+
+        return colors;
+    }
+
+    public List<JsonColorTemperature> getEchoLightTemperatures() {
+        ArrayList<JsonColorTemperature> temperatures = new ArrayList<>();
+        String[] stringTemperatures = { "warm_white", "soft_white", "white", "daylight_white", "cool_white" };
+        for (String temperature : stringTemperatures) {
+            temperatures.add(new JsonColorTemperature(temperature));
+        }
+
+        return temperatures;
+    }
+
     public List<Device> getDeviceList() throws IOException, URISyntaxException {
-        // CAUTION
-        List<SmartHomeDevice> test = this.getSmarthomeDeviceList();
         String json = getDeviceListJson();
         JsonDevices devices = parseJson(json, JsonDevices.class);
         Device[] result = devices.devices;
@@ -886,6 +911,8 @@ public class Connection {
         json = json.replace("\\", "");
         json = json.replace("\"{", "{");
         json = json.replace("}\"", "}");
+        logger.error("HIER");
+        logger.error(json);
         return json;
     }
 
@@ -949,6 +976,25 @@ public class Connection {
         String url = alexaServer + "/api/np/command?deviceSerialNumber=" + device.serialNumber + "&deviceType="
                 + device.deviceType;
         makeRequest("POST", url, command, true, true, null);
+    }
+
+    public void smartHomeCommand(String entityId, String action, String color) throws IOException, URISyntaxException {
+        String url = alexaServer + "/api/phoenix/state";
+        String requestBody = null;
+        if (action == "turnOn" || action == "turnOff") {
+            requestBody = "{\"controlRequests\": [{\"entityId\": " + "\"" + entityId + "\""
+                    + ", \"entityType\": \"APPLIANCE\", \"parameters\": { \"action\": " + "\"" + action + "\""
+                    + " }}]}";
+        } else if (action == "setColorTemperature") {
+            requestBody = "{\"controlRequests\": [{\"entityId\": " + "\"" + entityId + "\""
+                    + ", \"entityType\": \"APPLIANCE\", \"parameters\": { \"action\": " + "\"" + action + "\""
+                    + ", \"colorTemperatureName\": \"" + color + "\" }}]}";
+        } else {
+            requestBody = "{\"controlRequests\": [{\"entityId\": " + "\"" + entityId + "\""
+                    + ", \"entityType\": \"APPLIANCE\", \"parameters\": { \"action\": " + "\"" + action + "\""
+                    + ", \"colorName\": \"" + color + "\" }}]}";
+        }
+        makeRequest("PUT", url, requestBody, true, true, null);
     }
 
     public void notificationVolume(Device device, int volume) throws IOException, URISyntaxException {
