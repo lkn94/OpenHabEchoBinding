@@ -49,7 +49,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.jsoup.helper.StringUtil;
+import org.eclipse.jetty.util.StringUtil;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonActivities;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;
@@ -1007,10 +1007,10 @@ public class Connection {
     }
 
     public JsonPlaylists getPlaylists(Device device) throws IOException, URISyntaxException {
-        String json = makeRequestAndReturnString(
-                alexaServer + "/api/cloudplayer/playlists?deviceSerialNumber=" + device.serialNumber + "&deviceType="
-                        + device.deviceType + "&mediaOwnerCustomerId=" + (StringUtils.isEmpty(this.accountCustomerId)
-                                ? device.deviceOwnerCustomerId : this.accountCustomerId));
+        String json = makeRequestAndReturnString(alexaServer + "/api/cloudplayer/playlists?deviceSerialNumber="
+                + device.serialNumber + "&deviceType=" + device.deviceType + "&mediaOwnerCustomerId="
+                + (StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
+                        : this.accountCustomerId));
         JsonPlaylists playlists = parseJson(json, JsonPlaylists.class);
         return playlists;
     }
@@ -1120,9 +1120,9 @@ public class Connection {
             String command = "{\"trackId\":\"" + trackId + "\",\"playQueuePrime\":true}";
             makeRequest("POST",
                     alexaServer + "/api/cloudplayer/queue-and-play?deviceSerialNumber=" + device.serialNumber
-                            + "&deviceType=" + device.deviceType
-                            + "&mediaOwnerCustomerId=" + (StringUtils.isEmpty(this.accountCustomerId)
-                                    ? device.deviceOwnerCustomerId : this.accountCustomerId)
+                            + "&deviceType=" + device.deviceType + "&mediaOwnerCustomerId="
+                            + (StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
+                                    : this.accountCustomerId)
                             + "&shuffle=false",
                     command, true, true, null);
         }
@@ -1136,9 +1136,9 @@ public class Connection {
             String command = "{\"playlistId\":\"" + playListId + "\",\"playQueuePrime\":true}";
             makeRequest("POST",
                     alexaServer + "/api/cloudplayer/queue-and-play?deviceSerialNumber=" + device.serialNumber
-                            + "&deviceType=" + device.deviceType
-                            + "&mediaOwnerCustomerId=" + (StringUtils.isEmpty(this.accountCustomerId)
-                                    ? device.deviceOwnerCustomerId : this.accountCustomerId)
+                            + "&deviceType=" + device.deviceType + "&mediaOwnerCustomerId="
+                            + (StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
+                                    : this.accountCustomerId)
                             + "&shuffle=false",
                     command, true, true, null);
         }
@@ -1263,8 +1263,9 @@ public class Connection {
             operationPayload.addProperty("deviceType", device.deviceType);
             operationPayload.addProperty("deviceSerialNumber", device.serialNumber);
             operationPayload.addProperty("locale", "");
-            operationPayload.addProperty("customerId", StringUtils.isEmpty(this.accountCustomerId)
-                    ? device.deviceOwnerCustomerId : this.accountCustomerId);
+            operationPayload.addProperty("customerId",
+                    StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
+                            : this.accountCustomerId);
         }
         if (parameters != null) {
             for (String key : parameters.keySet()) {
@@ -1334,8 +1335,10 @@ public class Connection {
 
             // "customerId": "ALEXA_CUSTOMER_ID"
             String customerId = "\"customerId\":\"ALEXA_CUSTOMER_ID\"";
-            String newCustomerId = "\"customerId\":\"" + (StringUtils.isEmpty(this.accountCustomerId)
-                    ? device.deviceOwnerCustomerId : this.accountCustomerId) + "\"";
+            String newCustomerId = "\"customerId\":\""
+                    + (StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
+                            : this.accountCustomerId)
+                    + "\"";
             sequenceJson = sequenceJson.replace(customerId.subSequence(0, customerId.length()),
                     newCustomerId.subSequence(0, newCustomerId.length()));
 
