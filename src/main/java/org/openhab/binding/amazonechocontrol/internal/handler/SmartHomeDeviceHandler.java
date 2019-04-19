@@ -119,10 +119,20 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                     Map<String, String> props = this.thing.getProperties();
                     String entityId = props.get(DEVICE_PROPERTY_LIGHT_ENTITY_ID);
                     connection = accountHandler.findConnection();
-                    if (command.equals(OnOffType.ON)) {
-                        connection.smartHomeCommand(entityId, "turnOn", null);
-                    } else {
-                        connection.smartHomeCommand(entityId, "turnOff", null);
+                    for (Map.Entry<String, String> entry : props.entrySet()) {
+                        if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
+                            if (command.equals(OnOffType.ON)) {
+                                connection.smartHomeCommand(entry.getValue(), DEVICE_TURN_ON, null);
+                            } else {
+                                connection.smartHomeCommand(entry.getValue(), DEVICE_TURN_OFF, null);
+                            }
+                        } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID) && props.size() == 1) {
+                            if (command.equals(OnOffType.ON)) {
+                                connection.smartHomeCommand(entityId, DEVICE_TURN_ON, null);
+                            } else {
+                                connection.smartHomeCommand(entityId, DEVICE_TURN_OFF, null);
+                            }
+                        }
                     }
                 }
             }

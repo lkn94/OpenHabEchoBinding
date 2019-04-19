@@ -129,7 +129,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
 
         for (SmartHomeDevice smartHomeDevice : deviceList) {
             ThingUID bridgeThingUID = this.accountHandler.getThing().getUID();
-            ThingTypeUID thingTypeId = THING_TYPE_LIGHT;
+            ThingTypeUID thingTypeId = smartHomeDevice.groupDevices != null ? THING_TYPE_LIGHT_GROUP : THING_TYPE_LIGHT;
             ThingUID thingUID = new ThingUID(thingTypeId, bridgeThingUID, smartHomeDevice.entityId);
             if (discoveryServiceCallback.getExistingDiscoveryResult(thingUID) != null) {
                 continue;
@@ -150,7 +150,7 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
             if (smartHomeDevice.groupDevices != null) {
                 int subDeviceCounter = 0;
                 for (SmartHomeDevice d : smartHomeDevice.groupDevices) {
-                    subDevices.put("SubDevice" + subDeviceCounter, d.entityId);
+                    subDevices.put(DEVICE_PROPERTY_LIGHT_SUBDEVICE + subDeviceCounter, d.entityId);
                     ++subDeviceCounter;
                 }
             }

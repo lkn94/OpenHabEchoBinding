@@ -116,7 +116,7 @@ public class AmazonEchoControlHandlerFactory extends BaseThingHandlerFactory {
                     String.class.getClassLoader());
             return new FlashBriefingProfileHandler(thing, storage);
         }
-        if (thingTypeUID.equals(THING_TYPE_LIGHT)) {
+        if (thingTypeUID.equals(THING_TYPE_LIGHT) || thingTypeUID.equals(THING_TYPE_LIGHT_GROUP)) {
             Storage<String> storage = storageService.getStorage(thing.getUID().toString(),
                     String.class.getClassLoader());
             return new SmartHomeDeviceHandler(thing, storage);
