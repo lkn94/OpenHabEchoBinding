@@ -197,6 +197,8 @@
 		<description>Represents a light in your amazon account</description>
 		<channels>
 			<channel typeId="lightState" id="lightState"></channel>
+			<channel typeId="lightColor" id="lightColor"></channel>
+			<channel typeId="whiteTemperature" id="whiteTemperature"></channel>
 		</channels>
 	</thing-type>
 	<channel-type id="save">
@@ -411,6 +413,7 @@
 		<channels>
 			<channel typeId="lightState" id="lightState"></channel>
 			<channel typeId="lightColor" id="lightColor"></channel>
+			<channel typeId="whiteTemperature" id="whiteTemperature"></channel>
 		</channels>
 	</thing-type>
 	<channel-type id="lightColor" advanced="false">
@@ -434,6 +437,19 @@
 				<option value="magenta">Magenta</option>
 				<option value="pink">Pink</option>
 				<option value="lavender">Lavender</option>
+			</options></state>
+	</channel-type>
+	<channel-type id="whiteTemperature" advanced="false">
+		<item-type>String</item-type>
+		<label>White temperature</label>
+		<description>The temperature of white</description>
+		<state pattern="String" readOnly="false">
+			<options>
+				<option value="warm_white">Warm white</option>
+				<option value="soft_white">Soft white</option>
+				<option value="white">white</option>
+				<option value="daylight_white">Daylight white</option>
+				<option value="cool_white">Cool white</option>
 			</options></state>
 	</channel-type>
 </thing:thing-descriptions>

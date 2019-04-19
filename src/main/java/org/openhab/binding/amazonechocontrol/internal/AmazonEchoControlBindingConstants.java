@@ -84,6 +84,7 @@ public class AmazonEchoControlBindingConstants {
     public static final String CHANNEL_NOTIFICATION_VOLUME = "notificationVolume";
     public static final String CHANNEL_LIGHT_STATE = "lightState";
     public static final String CHANNEL_LIGHT_COLOR = "lightColor";
+    public static final String CHANNEL_LIGHT_WHITE_TEMPERATURE = "whiteTemperature";
 
     public static final String CHANNEL_SAVE = "save";
     public static final String CHANNEL_ACTIVE = "active";

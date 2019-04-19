@@ -155,6 +155,22 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                     }
                 }
             }
+            if (channelId.equals(CHANNEL_LIGHT_WHITE_TEMPERATURE)) {
+                if (command instanceof StringType) {
+                    String commandText = ((StringType) command).toFullString();
+                    if (StringUtils.isNotEmpty(commandText)) {
+                        updateStartCommand = true;
+                        connection = accountHandler.findConnection();
+                        for (Map.Entry<String, String> entry : props.entrySet()) {
+                            if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
+                                connection.smartHomeCommand(entry.getValue(), "setColorTemperature", commandText);
+                            } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID) && props.size() == 1) {
+                                connection.smartHomeCommand(entityId, "setColorTemperature", commandText);
+                            }
+                        }
+                    }
+                }
+            }
         } catch (Exception e) {
             logger.warn("Handle command failed {}", e);
         }
