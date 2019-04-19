@@ -24,6 +24,12 @@ It provides features to control and view the current state of echo devices:
 - get last spoken voice command
 - change the volume of the alarm
 
+Also this binding includes the features to control your lights connected to your Echo device.
+
+- turn on/off your lights
+- change the color
+- control groups of lights or just single bulbs
+
 Some ideas what you can do in your home by using rules and other openHAB controlled devices:
 
 - Automatic turn on your amplifier and connect echo with bluetooth if the echo plays music
@@ -37,6 +43,12 @@ Some ideas what you can do in your home by using rules and other openHAB control
 - Have different flash briefing in the morning and evening
 - Let alexa say 'welcome' to you if you open the door
 - Implement own handling for voice commands in a rule
+
+With the possibility to control your lights you could do:
+
+- a scene-based configuration of your rooms
+- connect single bulbs to functions of openhab
+- simulate your presence at home
 
 ## Note
 
@@ -56,6 +68,8 @@ The binding is tested with amazon.de, amazon.fr, amazon.it, amazon.com and amazo
 | echoshow             | Amazon Echo Show Device               |
 | wha                  | Amazon Echo Whole House Audio Control |
 | flashbriefingprofile | Flash briefing profile                |
+| light                | Smart bulbs connected to the Echo     |
+| lightGroup           | Groups of lights                      |
 
 ## First Steps
 
@@ -69,6 +83,9 @@ After configuration of the account thing with the login data, the echo devices r
 If the device type is not known by the binding, the device will not be discovered.
 But you can define any device listed in your alexa app with the best matching existing device (e.g. echo).
 You will find the required serial number in settings of the device in the alexa app.
+
+Also you will see your lights in the inbox of openhab. They will automatically be discoverd by openhab based on your amazon login.
+If you configured any groups of lights in your amazon alexa app they will be discovered by openhab too. 
 
 ## Binding Configuration
 
