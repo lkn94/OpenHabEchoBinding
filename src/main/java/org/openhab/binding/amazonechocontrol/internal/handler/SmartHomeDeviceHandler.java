@@ -53,7 +53,6 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
     private @Nullable ScheduledFuture<?> updateStateJob;
     private @Nullable Connection connection;
     private @Nullable SmartHomeDevice smartHomeDevice;
-    private boolean updateStartCommand = true;
 
     Storage<String> stateStorage;
 
@@ -129,7 +128,8 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                             } else {
                                 connection.smartHomeCommand(entry.getValue(), DEVICE_TURN_OFF, null);
                             }
-                        } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID) && props.size() == 1) {
+                        } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID)
+                                && !entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
                             if (command.equals(OnOffType.ON)) {
                                 connection.smartHomeCommand(entityId, DEVICE_TURN_ON, null);
                             } else {
@@ -143,12 +143,12 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                 if (command instanceof StringType) {
                     String commandText = ((StringType) command).toFullString();
                     if (StringUtils.isNotEmpty(commandText)) {
-                        updateStartCommand = true;
                         connection = accountHandler.findConnection();
                         for (Map.Entry<String, String> entry : props.entrySet()) {
                             if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
                                 connection.smartHomeCommand(entry.getValue(), "setColor", commandText);
-                            } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID) && props.size() == 1) {
+                            } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID)
+                                    && !entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
                                 connection.smartHomeCommand(entityId, "setColor", commandText);
                             }
                         }
@@ -159,12 +159,12 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                 if (command instanceof StringType) {
                     String commandText = ((StringType) command).toFullString();
                     if (StringUtils.isNotEmpty(commandText)) {
-                        updateStartCommand = true;
                         connection = accountHandler.findConnection();
                         for (Map.Entry<String, String> entry : props.entrySet()) {
                             if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
                                 connection.smartHomeCommand(entry.getValue(), "setColorTemperature", commandText);
-                            } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID) && props.size() == 1) {
+                            } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID)
+                                    && !entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
                                 connection.smartHomeCommand(entityId, "setColorTemperature", commandText);
                             }
                         }

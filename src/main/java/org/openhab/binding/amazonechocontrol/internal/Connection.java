@@ -12,6 +12,8 @@
  */
 package org.openhab.binding.amazonechocontrol.internal;
 
+import static org.openhab.binding.amazonechocontrol.internal.AmazonEchoControlBindingConstants.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -105,6 +107,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -848,7 +851,6 @@ public class Connection {
                 .get("amazonBridgeDetails").getAsJsonObject().get("amazonBridgeDetails").getAsJsonObject()
                 .get("LambdaBridge_AAA/SonarCloudService").getAsJsonObject().get("applianceDetails").getAsJsonObject()
                 .get("applianceDetails").getAsJsonObject();
-        // TODO ->
         ArrayList<SmartHomeDevice> smartHomeDeviceArray = new ArrayList<>();
         Set<String> keys = smartHomeDevices.keySet();
         for (String key : keys) {
@@ -865,6 +867,18 @@ public class Connection {
             if (keyObject.get("tags").getAsJsonObject().get("tagNameToValueSetMap").getAsJsonObject().size() > 0) {
                 shd.groupIdentity = keyObject.get("tags").getAsJsonObject().get("tagNameToValueSetMap")
                         .getAsJsonObject().get("groupIdentity").getAsJsonArray().get(0).getAsString();
+            }
+            if (keyObject.get("capabilities").getAsJsonArray().size() > 0) {
+                for (JsonElement obj : keyObject.get("capabilities").getAsJsonArray()) {
+                    String interfaceName = ((JsonObject) obj).get("interfaceName").getAsString();
+                    if (interfaceName.equals(INTERFACE_BRIGHTNESS)) {
+                        shd.brightness = true;
+                    } else if (interfaceName.equals(INTERFACE_COLOR_TEMPERATURE)) {
+                        shd.colorTemperature = true;
+                    } else if (interfaceName.equals(INTERFACE_COLOR)) {
+                        shd.color = true;
+                    }
+                }
             }
             smartHomeDeviceArray.add(shd);
         }
@@ -910,6 +924,7 @@ public class Connection {
         for (String key : keys) {
             JsonObject keyObject = smartHomeGroups.get(key).getAsJsonObject();
             SmartHomeGroup shg = parseJson(keyObject.toString(), SmartHomeGroup.class);
+
             smartHomeGroupArray.add(shg);
         }
 
@@ -920,6 +935,7 @@ public class Connection {
         return smartHomeGroupArray;
     }
 
+    // Placeholder for an api-request
     public List<JsonColors> getEchoLightColors() {
         ArrayList<JsonColors> colors = new ArrayList<>();
         String[] stringColors = { "red", "crimson", "salmon", "orange", "gold", "yellow", "green", "turquoise", "cyan",
@@ -931,6 +947,7 @@ public class Connection {
         return colors;
     }
 
+    // Placeholder for an api-request
     public List<JsonColorTemperature> getEchoLightTemperatures() {
         ArrayList<JsonColorTemperature> temperatures = new ArrayList<>();
         String[] stringTemperatures = { "warm_white", "soft_white", "white", "daylight_white", "cool_white" };

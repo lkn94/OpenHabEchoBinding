@@ -12,6 +12,9 @@ public class JsonSmartHomeGroups {
         public @Nullable Boolean isSpace;
         public @Nullable Boolean space;
         public @Nullable SmartHomeGroupIdentifier applianceGroupIdentifier;
+        public @Nullable Boolean brightness = false;
+        public @Nullable boolean color = false;
+        public @Nullable boolean colorTemperature = false;
     }
 
     public @Nullable SmartHomeGroup @Nullable [] groups;

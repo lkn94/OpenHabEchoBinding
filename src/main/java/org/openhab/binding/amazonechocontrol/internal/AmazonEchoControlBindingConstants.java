@@ -115,4 +115,9 @@ public class AmazonEchoControlBindingConstants {
     // List of all smart bulb actions
     public static final String DEVICE_TURN_ON = "turnOn";
     public static final String DEVICE_TURN_OFF = "turnOff";
+
+    // List of Alexa interfaces
+    public static final String INTERFACE_BRIGHTNESS = "Alexa.BrightnessController";
+    public static final String INTERFACE_COLOR_TEMPERATURE = "Alexa.ColorTemperatureController";
+    public static final String INTERFACE_COLOR = "Alexa.ColorController";
 }

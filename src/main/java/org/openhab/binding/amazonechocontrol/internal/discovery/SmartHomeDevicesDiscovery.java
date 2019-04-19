@@ -145,19 +145,31 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
                 lightName = smartHomeDevice.friendlyName;
             }
 
-            Map<String, Object> subDevices = new HashMap<String, Object>();
-            subDevices.put(DEVICE_PROPERTY_LIGHT_ENTITY_ID, smartHomeDevice.entityId);
+            Map<String, Object> props = new HashMap<String, Object>();
+            props.put(DEVICE_PROPERTY_LIGHT_ENTITY_ID, smartHomeDevice.entityId);
             if (smartHomeDevice.groupDevices != null) {
                 int subDeviceCounter = 0;
                 for (SmartHomeDevice d : smartHomeDevice.groupDevices) {
-                    subDevices.put(DEVICE_PROPERTY_LIGHT_SUBDEVICE + subDeviceCounter, d.entityId);
+                    props.put(DEVICE_PROPERTY_LIGHT_SUBDEVICE + subDeviceCounter, d.entityId);
                     ++subDeviceCounter;
                 }
             }
 
+            if (smartHomeDevice.brightness == true) {
+                props.put(INTERFACE_BRIGHTNESS, "true");
+            } else if (smartHomeDevice.colorTemperature == true) {
+                props.put(INTERFACE_COLOR_TEMPERATURE, "true");
+            } else if (smartHomeDevice.color == true) {
+                props.put(INTERFACE_COLOR, "true");
+            }
+
+            logger.error("HIER");
+            logger.error(smartHomeDevice.brightness + " ");
+            logger.error(props.toString());
+
             // .withProperty(DEVICE_PROPERTY_LIGHT_ENTITY_ID, smartHomeDevice.entityId)
-            DiscoveryResult result = DiscoveryResultBuilder.create(thingUID).withLabel(lightName)
-                    .withProperties(subDevices).withBridge(bridgeThingUID).build();
+            DiscoveryResult result = DiscoveryResultBuilder.create(thingUID).withLabel(lightName).withProperties(props)
+                    .withBridge(bridgeThingUID).build();
 
             logger.debug("Device[{]: {}] found. Mapped to thing type {}", smartHomeDevice.friendlyName,
                     smartHomeDevice.applianceId, thingTypeId.getAsString());
