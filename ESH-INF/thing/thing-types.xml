@@ -410,6 +410,30 @@
 		<description>Group of light bulbs in your amazon account</description>
 		<channels>
 			<channel typeId="lightState" id="lightState"></channel>
+			<channel typeId="lightColor" id="lightColor"></channel>
 		</channels>
 	</thing-type>
+	<channel-type id="lightColor" advanced="false">
+		<item-type>String</item-type>
+		<label>Light color</label>
+		<description>The color of a smart bulb</description>
+		<state pattern="String" readOnly="false">
+			<options>
+				<option value="red">Red</option>
+				<option value="crimson">Crimson</option>
+				<option value="salmon">Salmon</option>
+				<option value="orange">Orange</option>
+				<option value="gold">Gold</option>
+				<option value="yellow">Yellow</option>
+				<option value="green">Green</option>
+				<option value="turquoise">Turquoise</option>
+				<option value="cyan">Cyan</option>
+				<option value="sky_blue">Sky blue</option>
+				<option value="blue">Blue</option>
+				<option value="purple">Purple</option>
+				<option value="magenta">Magenta</option>
+				<option value="pink">Pink</option>
+				<option value="lavender">Lavender</option>
+			</options></state>
+	</channel-type>
 </thing:thing-descriptions>

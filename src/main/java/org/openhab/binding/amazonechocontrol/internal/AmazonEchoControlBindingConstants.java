@@ -83,6 +83,7 @@ public class AmazonEchoControlBindingConstants {
     public static final String CHANNEL_ASCENDING_ALARM = "ascendingAlarm";
     public static final String CHANNEL_NOTIFICATION_VOLUME = "notificationVolume";
     public static final String CHANNEL_LIGHT_STATE = "lightState";
+    public static final String CHANNEL_LIGHT_COLOR = "lightColor";
 
     public static final String CHANNEL_SAVE = "save";
     public static final String CHANNEL_ACTIVE = "active";
@@ -98,6 +99,7 @@ public class AmazonEchoControlBindingConstants {
     public static final ChannelTypeUID CHANNEL_TYPE_MUSIC_PROVIDER_ID = new ChannelTypeUID(BINDING_ID,
             "musicProviderId");
     public static final ChannelTypeUID CHANNEL_TYPE_START_COMMAND = new ChannelTypeUID(BINDING_ID, "startCommand");
+    public static final ChannelTypeUID CHANNEL_TYPE_LIGHT_COLOR = new ChannelTypeUID(BINDING_ID, "lightColor");
 
     // List of all Properties
     public static final String DEVICE_PROPERTY_SERIAL_NUMBER = "serialNumber";

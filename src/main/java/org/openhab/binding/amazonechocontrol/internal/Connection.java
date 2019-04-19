@@ -1032,7 +1032,7 @@ public class Connection {
             requestBody = "{\"controlRequests\": [{\"entityId\": " + "\"" + entityId + "\""
                     + ", \"entityType\": \"APPLIANCE\", \"parameters\": { \"action\": " + "\"" + action + "\""
                     + ", \"colorTemperatureName\": \"" + color + "\" }}]}";
-        } else {
+        } else if (action == "setColor") {
             requestBody = "{\"controlRequests\": [{\"entityId\": " + "\"" + entityId + "\""
                     + ", \"entityType\": \"APPLIANCE\", \"parameters\": { \"action\": " + "\"" + action + "\""
                     + ", \"colorName\": \"" + color + "\" }}]}";

@@ -22,8 +22,10 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.storage.Storage;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
@@ -51,6 +53,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
     private @Nullable ScheduledFuture<?> updateStateJob;
     private @Nullable Connection connection;
     private @Nullable SmartHomeDevice smartHomeDevice;
+    private boolean updateStartCommand = true;
 
     Storage<String> stateStorage;
 
@@ -110,14 +113,14 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
             updateStateJob.cancel(false);
         }
         try {
+            Map<String, String> props = this.thing.getProperties();
+            String entityId = props.get(DEVICE_PROPERTY_LIGHT_ENTITY_ID);
             String channelId = channelUID.getId();
             if (command instanceof RefreshType) {
                 waitForUpdate = 0;
             }
             if (channelId.equals(CHANNEL_LIGHT_STATE)) {
                 if (command instanceof OnOffType) {
-                    Map<String, String> props = this.thing.getProperties();
-                    String entityId = props.get(DEVICE_PROPERTY_LIGHT_ENTITY_ID);
                     connection = accountHandler.findConnection();
                     for (Map.Entry<String, String> entry : props.entrySet()) {
                         if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
@@ -131,6 +134,22 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                                 connection.smartHomeCommand(entityId, DEVICE_TURN_ON, null);
                             } else {
                                 connection.smartHomeCommand(entityId, DEVICE_TURN_OFF, null);
+                            }
+                        }
+                    }
+                }
+            }
+            if (channelId.equals(CHANNEL_LIGHT_COLOR)) {
+                if (command instanceof StringType) {
+                    String commandText = ((StringType) command).toFullString();
+                    if (StringUtils.isNotEmpty(commandText)) {
+                        updateStartCommand = true;
+                        connection = accountHandler.findConnection();
+                        for (Map.Entry<String, String> entry : props.entrySet()) {
+                            if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
+                                connection.smartHomeCommand(entry.getValue(), "setColor", commandText);
+                            } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID) && props.size() == 1) {
+                                connection.smartHomeCommand(entityId, "setColor", commandText);
                             }
                         }
                     }
