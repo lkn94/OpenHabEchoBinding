@@ -197,8 +197,9 @@
 		<description>Represents a light in your amazon account</description>
 		<channels>
 			<channel typeId="lightState" id="lightState"></channel>
-			<channel typeId="lightColor" id="lightColor"></channel>
+			<channel typeId="lightBrightness" id="lightBrightness"></channel><channel typeId="lightColor" id="lightColor"></channel>
 			<channel typeId="whiteTemperature" id="whiteTemperature"></channel>
+			
 		</channels>
 	</thing-type>
 	<channel-type id="save">
@@ -412,9 +413,9 @@
 		<description>Group of light bulbs in your amazon account</description>
 		<channels>
 			<channel typeId="lightState" id="lightState"></channel>
-			<channel typeId="lightColor" id="lightColor"></channel>
+			<channel typeId="lightBrightness" id="lightBrightness"></channel><channel typeId="lightColor" id="lightColor"></channel>
 			<channel typeId="whiteTemperature" id="whiteTemperature"></channel>
-			<channel typeId="lightBrightness" id="lightBrightness"></channel>
+			
 		</channels>
 	</thing-type>
 	<channel-type id="lightColor" advanced="false">
