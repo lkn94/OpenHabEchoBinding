@@ -1038,7 +1038,8 @@ public class Connection {
         makeRequest("POST", url, command, true, true, null);
     }
 
-    public void smartHomeCommand(String entityId, String action, String color) throws IOException, URISyntaxException {
+    public void smartHomeCommand(String entityId, String action, String color, double brightness)
+            throws IOException, URISyntaxException {
         String url = alexaServer + "/api/phoenix/state";
         String requestBody = null;
         if (action == "turnOn" || action == "turnOff") {
@@ -1053,6 +1054,10 @@ public class Connection {
             requestBody = "{\"controlRequests\": [{\"entityId\": " + "\"" + entityId + "\""
                     + ", \"entityType\": \"APPLIANCE\", \"parameters\": { \"action\": " + "\"" + action + "\""
                     + ", \"colorName\": \"" + color + "\" }}]}";
+        } else if (action == "setBrightness") {
+            requestBody = "{\"controlRequests\": [{\"entityId\": " + "\"" + entityId + "\""
+                    + ", \"entityType\": \"APPLIANCE\", \"parameters\": { \"action\": " + "\"" + action + "\""
+                    + ", \"brightness\": \"" + brightness + "\" }}]}";
         }
         makeRequest("PUT", url, requestBody, true, true, null);
     }

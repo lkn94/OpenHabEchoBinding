@@ -414,6 +414,7 @@
 			<channel typeId="lightState" id="lightState"></channel>
 			<channel typeId="lightColor" id="lightColor"></channel>
 			<channel typeId="whiteTemperature" id="whiteTemperature"></channel>
+			<channel typeId="lightBrightness" id="lightBrightness"></channel>
 		</channels>
 	</thing-type>
 	<channel-type id="lightColor" advanced="false">
@@ -451,5 +452,10 @@
 				<option value="daylight_white">Daylight white</option>
 				<option value="cool_white">Cool white</option>
 			</options></state>
+	</channel-type>
+	<channel-type id="lightBrightness" advanced="false">
+		<item-type>Dimmer</item-type>
+		<label>lightBrightness</label>
+		<description>The brightness of the light</description>
 	</channel-type>
 </thing:thing-descriptions>

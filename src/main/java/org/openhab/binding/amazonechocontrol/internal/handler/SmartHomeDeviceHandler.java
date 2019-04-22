@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.PercentType;
 import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.storage.Storage;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -124,16 +125,16 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                     for (Map.Entry<String, String> entry : props.entrySet()) {
                         if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
                             if (command.equals(OnOffType.ON)) {
-                                connection.smartHomeCommand(entry.getValue(), DEVICE_TURN_ON, null);
+                                connection.smartHomeCommand(entry.getValue(), DEVICE_TURN_ON, null, 0.00);
                             } else {
-                                connection.smartHomeCommand(entry.getValue(), DEVICE_TURN_OFF, null);
+                                connection.smartHomeCommand(entry.getValue(), DEVICE_TURN_OFF, null, 0.00);
                             }
                         } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID)
                                 && !entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
                             if (command.equals(OnOffType.ON)) {
-                                connection.smartHomeCommand(entityId, DEVICE_TURN_ON, null);
+                                connection.smartHomeCommand(entityId, DEVICE_TURN_ON, null, 0.00);
                             } else {
-                                connection.smartHomeCommand(entityId, DEVICE_TURN_OFF, null);
+                                connection.smartHomeCommand(entityId, DEVICE_TURN_OFF, null, 0.00);
                             }
                         }
                     }
@@ -146,10 +147,10 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                         connection = accountHandler.findConnection();
                         for (Map.Entry<String, String> entry : props.entrySet()) {
                             if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
-                                connection.smartHomeCommand(entry.getValue(), "setColor", commandText);
+                                connection.smartHomeCommand(entry.getValue(), "setColor", commandText, 0.00);
                             } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID)
                                     && !entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
-                                connection.smartHomeCommand(entityId, "setColor", commandText);
+                                connection.smartHomeCommand(entityId, "setColor", commandText, 0.00);
                             }
                         }
                     }
@@ -162,11 +163,26 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                         connection = accountHandler.findConnection();
                         for (Map.Entry<String, String> entry : props.entrySet()) {
                             if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
-                                connection.smartHomeCommand(entry.getValue(), "setColorTemperature", commandText);
+                                connection.smartHomeCommand(entry.getValue(), "setColorTemperature", commandText, 0.00);
                             } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID)
                                     && !entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
-                                connection.smartHomeCommand(entityId, "setColorTemperature", commandText);
+                                connection.smartHomeCommand(entityId, "setColorTemperature", commandText, 0.00);
                             }
+                        }
+                    }
+                }
+            }
+            if (channelId.equals(CHANNEL_LIGHT_BRIGHTNESS)) {
+                if (command instanceof PercentType) {
+                    connection = accountHandler.findConnection();
+                    for (Map.Entry<String, String> entry : props.entrySet()) {
+                        if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
+                            connection.smartHomeCommand(entry.getValue(), "setBrightness", null,
+                                    ((PercentType) command).floatValue() / 100);
+                        } else if (entry.getKey().contains(DEVICE_PROPERTY_LIGHT_ENTITY_ID)
+                                && !entry.getKey().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE)) {
+                            connection.smartHomeCommand(entityId, "setBrightness", null,
+                                    ((PercentType) command).floatValue() / 100);
                         }
                     }
                 }
