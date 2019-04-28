@@ -147,10 +147,12 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
 
             Map<String, Object> props = new HashMap<String, Object>();
             props.put(DEVICE_PROPERTY_LIGHT_ENTITY_ID, smartHomeDevice.entityId);
+            props.put(DEVICE_PROPERTY_APPLIANCE_ID, smartHomeDevice.applianceId);
             if (smartHomeDevice.groupDevices != null) {
                 int subDeviceCounter = 0;
                 for (SmartHomeDevice d : smartHomeDevice.groupDevices) {
                     props.put(DEVICE_PROPERTY_LIGHT_SUBDEVICE + subDeviceCounter, d.entityId);
+                    props.put(DEVICE_PROPERTY_APPLIANCE_ID + subDeviceCounter, d.applianceId);
                     ++subDeviceCounter;
                 }
             }
@@ -163,11 +165,6 @@ public class SmartHomeDevicesDiscovery extends AbstractDiscoveryService implemen
                 props.put(INTERFACE_COLOR, "true");
             }
 
-            logger.error("HIER");
-            logger.error(smartHomeDevice.brightness + " ");
-            logger.error(props.toString());
-
-            // .withProperty(DEVICE_PROPERTY_LIGHT_ENTITY_ID, smartHomeDevice.entityId)
             DiscoveryResult result = DiscoveryResultBuilder.create(thingUID).withLabel(lightName).withProperties(props)
                     .withBridge(bridgeThingUID).build();
 

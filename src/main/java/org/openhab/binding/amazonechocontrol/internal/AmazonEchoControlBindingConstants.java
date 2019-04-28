@@ -107,6 +107,7 @@ public class AmazonEchoControlBindingConstants {
     public static final String DEVICE_PROPERTY_SERIAL_NUMBER = "serialNumber";
     public static final String DEVICE_PROPERTY_FAMILY = "deviceFamily";
     public static final String DEVICE_PROPERTY_FLASH_BRIEFING_PROFILE = "configurationJson";
+    public static final String DEVICE_PROPERTY_APPLIANCE_ID = "applianceId";
     public static final String DEVICE_PROPERTY_LIGHT_ENTITY_ID = "entityId";
     public static final String DEVICE_PROPERTY_LIGHT_SUBDEVICE = "subDevice";
 

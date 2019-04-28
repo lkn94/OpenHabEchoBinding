@@ -52,6 +52,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.util.StringUtil;
+import org.eclipse.smarthome.core.thing.Thing;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonActivities;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonActivities.Activity;
 import org.openhab.binding.amazonechocontrol.internal.jsons.JsonAnnouncementContent;
@@ -981,6 +982,63 @@ public class Connection {
         return json;
     }
 
+    public int getBulbBrightness(Thing device) throws IOException, URISyntaxException {
+        JsonArray capabilities = this.getBulbCapabilities(device).getAsJsonArray();
+        int brightness = -1;
+        for (JsonElement capability : capabilities) {
+            JsonObject capabilityObject = capability.getAsJsonObject();
+            if (capabilityObject.get("namespace").getAsString().equals("Alexa.BrightnessController")) {
+                brightness = capabilityObject.get("value").getAsInt();
+            }
+        }
+
+        if (brightness == -1) {
+            return 100;
+        }
+
+        return brightness;
+    }
+
+    public String getBulbState(Thing device) throws IOException, URISyntaxException {
+        JsonArray capabilities = this.getBulbCapabilities(device).getAsJsonArray();
+        String state = null;
+        for (JsonElement capability : capabilities) {
+            JsonObject capabilityObject = capability.getAsJsonObject();
+            if (capabilityObject.get("namespace").getAsString().equals("Alexa.PowerController")) {
+                state = capabilityObject.get("value").getAsString();
+            }
+        }
+
+        if (state == null || state.isEmpty()) {
+            return null;
+        }
+
+        return state;
+    }
+
+    public JsonElement getBulbCapabilities(Thing device) throws IOException, URISyntaxException {
+        String json = this.getBulbStateJson(device);
+        JsonElement jobject = new JsonParser().parse(json);
+        JsonArray capabilities = jobject.getAsJsonObject().get("deviceStates").getAsJsonArray().get(0).getAsJsonObject()
+                .get("capabilityStates").getAsJsonArray();
+        return capabilities;
+    }
+
+    public String getBulbStateJson(Thing device) throws IOException, URISyntaxException {
+        Map<String, String> props = device.getProperties();
+        String applianceId = props.get(DEVICE_PROPERTY_APPLIANCE_ID);
+        String command = "{ \"stateRequests\": [{ \"entityId\": \"" + applianceId
+                + "\", \"entityType\": \"APPLIANCE\" }] }";
+        String json = makeRequestAndReturnString("POST", alexaServer + "/api/phoenix/state", command, true, null);
+        json = json.replace("\\", "");
+        json = json.replace("\"{", "{");
+        json = json.replace("}\"", "}");
+        if (!json.isEmpty()) {
+            return json;
+        }
+        return null;
+    }
+
     public JsonPlayerState getPlayer(Device device) throws IOException, URISyntaxException {
         String json = makeRequestAndReturnString(alexaServer + "/api/np/player?deviceSerialNumber="
                 + device.serialNumber + "&deviceType=" + device.deviceType + "&screenWidth=1440");
@@ -1024,10 +1082,10 @@ public class Connection {
     }
 
     public JsonPlaylists getPlaylists(Device device) throws IOException, URISyntaxException {
-        String json = makeRequestAndReturnString(alexaServer + "/api/cloudplayer/playlists?deviceSerialNumber="
-                + device.serialNumber + "&deviceType=" + device.deviceType + "&mediaOwnerCustomerId="
-                + (StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
-                        : this.accountCustomerId));
+        String json = makeRequestAndReturnString(
+                alexaServer + "/api/cloudplayer/playlists?deviceSerialNumber=" + device.serialNumber + "&deviceType="
+                        + device.deviceType + "&mediaOwnerCustomerId=" + (StringUtils.isEmpty(this.accountCustomerId)
+                                ? device.deviceOwnerCustomerId : this.accountCustomerId));
         JsonPlaylists playlists = parseJson(json, JsonPlaylists.class);
         return playlists;
     }
@@ -1142,9 +1200,9 @@ public class Connection {
             String command = "{\"trackId\":\"" + trackId + "\",\"playQueuePrime\":true}";
             makeRequest("POST",
                     alexaServer + "/api/cloudplayer/queue-and-play?deviceSerialNumber=" + device.serialNumber
-                            + "&deviceType=" + device.deviceType + "&mediaOwnerCustomerId="
-                            + (StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
-                                    : this.accountCustomerId)
+                            + "&deviceType=" + device.deviceType
+                            + "&mediaOwnerCustomerId=" + (StringUtils.isEmpty(this.accountCustomerId)
+                                    ? device.deviceOwnerCustomerId : this.accountCustomerId)
                             + "&shuffle=false",
                     command, true, true, null);
         }
@@ -1158,9 +1216,9 @@ public class Connection {
             String command = "{\"playlistId\":\"" + playListId + "\",\"playQueuePrime\":true}";
             makeRequest("POST",
                     alexaServer + "/api/cloudplayer/queue-and-play?deviceSerialNumber=" + device.serialNumber
-                            + "&deviceType=" + device.deviceType + "&mediaOwnerCustomerId="
-                            + (StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
-                                    : this.accountCustomerId)
+                            + "&deviceType=" + device.deviceType
+                            + "&mediaOwnerCustomerId=" + (StringUtils.isEmpty(this.accountCustomerId)
+                                    ? device.deviceOwnerCustomerId : this.accountCustomerId)
                             + "&shuffle=false",
                     command, true, true, null);
         }
@@ -1285,9 +1343,8 @@ public class Connection {
             operationPayload.addProperty("deviceType", device.deviceType);
             operationPayload.addProperty("deviceSerialNumber", device.serialNumber);
             operationPayload.addProperty("locale", "");
-            operationPayload.addProperty("customerId",
-                    StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
-                            : this.accountCustomerId);
+            operationPayload.addProperty("customerId", StringUtils.isEmpty(this.accountCustomerId)
+                    ? device.deviceOwnerCustomerId : this.accountCustomerId);
         }
         if (parameters != null) {
             for (String key : parameters.keySet()) {
@@ -1357,10 +1414,8 @@ public class Connection {
 
             // "customerId": "ALEXA_CUSTOMER_ID"
             String customerId = "\"customerId\":\"ALEXA_CUSTOMER_ID\"";
-            String newCustomerId = "\"customerId\":\""
-                    + (StringUtils.isEmpty(this.accountCustomerId) ? device.deviceOwnerCustomerId
-                            : this.accountCustomerId)
-                    + "\"";
+            String newCustomerId = "\"customerId\":\"" + (StringUtils.isEmpty(this.accountCustomerId)
+                    ? device.deviceOwnerCustomerId : this.accountCustomerId) + "\"";
             sequenceJson = sequenceJson.replace(customerId.subSequence(0, customerId.length()),
                     newCustomerId.subSequence(0, newCustomerId.length()));
 

@@ -105,7 +105,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         if (accountHandler == null) {
             return;
         }
-        int waitForUpdate = -1;
+        int waitForUpdate = 1;
 
         ScheduledFuture<?> updateStateJob = this.updateStateJob;
         this.updateStateJob = null;
@@ -187,6 +187,42 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                     }
                 }
             }
+
+            if (waitForUpdate < 0) {
+                return;
+            }
+
+            Runnable doRefresh = () -> {
+                String state = "";
+                try {
+                    state = connection.getBulbState(this.thing);
+                } catch (IOException e) {
+                    logger.error(e.getMessage());
+                } catch (URISyntaxException e) {
+                    logger.error(e.getMessage());
+                }
+                updateState(this.thing.getChannel(CHANNEL_LIGHT_STATE).getUID(), state);
+
+                int brightness = -1;
+                try {
+                    brightness = connection.getBulbBrightness(this.thing);
+                } catch (IOException e) {
+                    logger.error(e.getMessage());
+                } catch (URISyntaxException e) {
+                    logger.error(e.getMessage());
+                }
+                updateBrightness(this.thing.getChannel(CHANNEL_LIGHT_BRIGHTNESS).getUID(), brightness);
+            };
+
+            if (command instanceof RefreshType) {
+                waitForUpdate = 0;
+            }
+
+            if (waitForUpdate == 0) {
+                doRefresh.run();
+            } else {
+                this.updateStateJob = scheduler.schedule(doRefresh, waitForUpdate, TimeUnit.MILLISECONDS);
+            }
         } catch (Exception e) {
             logger.warn("Handle command failed {}", e);
         }
@@ -199,6 +235,18 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         if (command instanceof RefreshType) {
             updateSmartHomeDevices();
         }
+    }
+
+    public void updateState(ChannelUID channelUID, String command) {
+        if (command.equals("ON")) {
+            updateState(channelUID, OnOffType.ON);
+        } else if (command.equals("OFF")) {
+            updateState(channelUID, OnOffType.OFF);
+        }
+    }
+
+    public void updateBrightness(ChannelUID channelUID, int brightness) {
+        updateState(channelUID, new PercentType(brightness));
     }
 
     public boolean initialize(AccountHandler handler) {
