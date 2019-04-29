@@ -105,7 +105,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         if (accountHandler == null) {
             return;
         }
-        int waitForUpdate = 1;
+        int waitForUpdate = -1;
 
         ScheduledFuture<?> updateStateJob = this.updateStateJob;
         this.updateStateJob = null;
@@ -138,6 +138,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                             }
                         }
                     }
+                    waitForUpdate = 1;
                 }
             }
             if (channelId.equals(CHANNEL_LIGHT_COLOR)) {
@@ -185,6 +186,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                                     ((PercentType) command).floatValue() / 100);
                         }
                     }
+                    waitForUpdate = 1;
                 }
             }
 
@@ -195,7 +197,11 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
             Runnable doRefresh = () -> {
                 String state = "";
                 try {
-                    state = connection.getBulbState(this.thing);
+                    if (!this.thing.getProperties().containsKey(DEVICE_PROPERTY_LIGHT_SUBDEVICE + "0")) {
+                        state = connection.getBulbState(this.thing);
+                    } else {
+                        state = connection.getLightGroupState(this.thing);
+                    }
                 } catch (IOException e) {
                     logger.error(e.getMessage());
                 } catch (URISyntaxException e) {
@@ -205,7 +211,11 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
 
                 int brightness = -1;
                 try {
-                    brightness = connection.getBulbBrightness(this.thing);
+                    if (!this.thing.getProperties().containsKey(DEVICE_PROPERTY_LIGHT_SUBDEVICE + "0")) {
+                        brightness = connection.getBulbBrightness(this.thing);
+                    } else {
+                        brightness = connection.getLightGroupBrightness(this.thing);
+                    }
                 } catch (IOException e) {
                     logger.error(e.getMessage());
                 } catch (URISyntaxException e) {
