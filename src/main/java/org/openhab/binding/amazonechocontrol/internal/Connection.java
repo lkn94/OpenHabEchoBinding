@@ -991,6 +991,11 @@ public class Connection {
             for (String key : props.keySet()) {
                 if (key.contains(DEVICE_PROPERTY_APPLIANCE_ID + counter)) {
                     JsonArray capabilities = this.getBulbCapabilities(props.get(key));
+
+                    if (capabilities == null) {
+                        break;
+                    }
+
                     Float state = null;
                     for (JsonElement capability : capabilities) {
                         JsonObject capabilityObject = capability.getAsJsonObject();
@@ -1020,6 +1025,11 @@ public class Connection {
         }
 
         JsonArray capabilities = this.getBulbCapabilities(applianceId);
+
+        if (capabilities == null) {
+            return -1;
+        }
+
         int brightness = -1;
         if (device.getThingTypeUID().equals(THING_TYPE_LIGHT)
                 || device.getThingTypeUID().equals(THING_TYPE_LIGHT_GROUP)) {
@@ -1080,15 +1090,18 @@ public class Connection {
         if (device.getThingTypeUID().equals(THING_TYPE_LIGHT)
                 || device.getThingTypeUID().equals(THING_TYPE_LIGHT_GROUP)) {
             JsonArray capabilities = this.getBulbCapabilities(applianceId);
+
+            if (capabilities == null) {
+                return null;
+            }
+
             for (JsonElement capability : capabilities) {
-                logger.error("Capability State");
-                logger.error(capability.toString());
                 JsonObject capabilityObject = capability.getAsJsonObject();
                 if (capabilityObject.get("namespace").getAsString().equals("Alexa.PowerController")) {
                     try {
                         state = capabilityObject.get("value").getAsString();
                     } catch (Exception e) {
-                        logger.error(e.getMessage());
+                        logger.error("getting bulb state failed {}", e);
                     }
                 }
             }
@@ -1104,8 +1117,15 @@ public class Connection {
     public JsonArray getBulbCapabilities(String applianceId) throws IOException, URISyntaxException {
         String json = this.getBulbStateJson(applianceId);
         JsonElement jobject = new JsonParser().parse(json);
-        JsonArray capabilities = jobject.getAsJsonObject().get("deviceStates").getAsJsonArray().get(0).getAsJsonObject()
-                .get("capabilityStates").getAsJsonArray();
+        JsonArray capabilities = null;
+
+        try {
+            capabilities = jobject.getAsJsonObject().get("deviceStates").getAsJsonArray().get(0).getAsJsonObject()
+                    .get("capabilityStates").getAsJsonArray();
+        } catch (Exception e) {
+            logger.error("getting capabilities failed {}", e);
+        }
+
         return capabilities;
     }
 
