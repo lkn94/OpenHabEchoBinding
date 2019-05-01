@@ -990,7 +990,7 @@ public class Connection {
             int counter = 0;
             for (String key : props.keySet()) {
                 if (key.contains(DEVICE_PROPERTY_APPLIANCE_ID + counter)) {
-                    JsonArray capabilities = this.getBulbCapabilities(props.get(key)).getAsJsonArray();
+                    JsonArray capabilities = this.getBulbCapabilities(props.get(key));
                     Float state = null;
                     for (JsonElement capability : capabilities) {
                         JsonObject capabilityObject = capability.getAsJsonObject();
@@ -1014,20 +1014,29 @@ public class Connection {
     public int getBulbBrightness(Thing device) throws IOException, URISyntaxException {
         Map<String, String> props = device.getProperties();
         String applianceId = props.get(DEVICE_PROPERTY_APPLIANCE_ID);
-        JsonArray capabilities = this.getBulbCapabilities(applianceId).getAsJsonArray();
+
+        if (applianceId == null) {
+            return -1;
+        }
+
+        JsonArray capabilities = this.getBulbCapabilities(applianceId);
         int brightness = -1;
-        for (JsonElement capability : capabilities) {
-            JsonObject capabilityObject = capability.getAsJsonObject();
-            if (capabilityObject.get("namespace").getAsString().equals("Alexa.BrightnessController")) {
-                brightness = capabilityObject.get("value").getAsInt();
+        if (device.getThingTypeUID().equals(THING_TYPE_LIGHT)
+                || device.getThingTypeUID().equals(THING_TYPE_LIGHT_GROUP)) {
+            for (JsonElement capability : capabilities) {
+                JsonObject capabilityObject = capability.getAsJsonObject();
+                if (capabilityObject.get("namespace").getAsString().equals("Alexa.BrightnessController")) {
+                    brightness = capabilityObject.get("value").getAsInt();
+                }
             }
-        }
 
-        if (brightness == -1) {
-            return 100;
-        }
+            if (brightness == -1) {
+                return 100;
+            }
 
-        return brightness;
+            return brightness;
+        }
+        return -1;
     }
 
     public String getLightGroupState(Thing device) throws IOException, URISyntaxException {
@@ -1037,7 +1046,7 @@ public class Connection {
             int counter = 0;
             for (String key : props.keySet()) {
                 if (key.contains(DEVICE_PROPERTY_APPLIANCE_ID + counter)) {
-                    JsonArray capabilities = this.getBulbCapabilities(props.get(key)).getAsJsonArray();
+                    JsonArray capabilities = this.getBulbCapabilities(props.get(key));
                     String state = null;
                     for (JsonElement capability : capabilities) {
                         JsonObject capabilityObject = capability.getAsJsonObject();
@@ -1062,12 +1071,26 @@ public class Connection {
     public String getBulbState(Thing device) throws IOException, URISyntaxException {
         Map<String, String> props = device.getProperties();
         String applianceId = props.get(DEVICE_PROPERTY_APPLIANCE_ID);
-        JsonArray capabilities = this.getBulbCapabilities(applianceId).getAsJsonArray();
+
+        if (applianceId == null) {
+            return null;
+        }
+
         String state = null;
-        for (JsonElement capability : capabilities) {
-            JsonObject capabilityObject = capability.getAsJsonObject();
-            if (capabilityObject.get("namespace").getAsString().equals("Alexa.PowerController")) {
-                state = capabilityObject.get("value").getAsString();
+        if (device.getThingTypeUID().equals(THING_TYPE_LIGHT)
+                || device.getThingTypeUID().equals(THING_TYPE_LIGHT_GROUP)) {
+            JsonArray capabilities = this.getBulbCapabilities(applianceId);
+            for (JsonElement capability : capabilities) {
+                logger.error("Capability State");
+                logger.error(capability.toString());
+                JsonObject capabilityObject = capability.getAsJsonObject();
+                if (capabilityObject.get("namespace").getAsString().equals("Alexa.PowerController")) {
+                    try {
+                        state = capabilityObject.get("value").getAsString();
+                    } catch (Exception e) {
+                        logger.error(e.getMessage());
+                    }
+                }
             }
         }
 
@@ -1078,7 +1101,7 @@ public class Connection {
         return state;
     }
 
-    public JsonElement getBulbCapabilities(String applianceId) throws IOException, URISyntaxException {
+    public JsonArray getBulbCapabilities(String applianceId) throws IOException, URISyntaxException {
         String json = this.getBulbStateJson(applianceId);
         JsonElement jobject = new JsonParser().parse(json);
         JsonArray capabilities = jobject.getAsJsonObject().get("deviceStates").getAsJsonArray().get(0).getAsJsonObject()
