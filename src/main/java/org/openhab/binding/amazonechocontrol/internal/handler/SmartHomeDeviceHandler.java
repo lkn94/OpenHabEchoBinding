@@ -90,28 +90,30 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    logger.error("Start running update job");
                     if (account != null) {
                         List<Thing> things = account.getThing().getThings();
                         for (Thing thing : things) {
-                            logger.error(thing.getLabel());
                             try {
                                 String state = null;
                                 int brightness = -1;
+                                String color = null;
                                 connection = accountHandler.findConnection();
                                 if (thing.getProperties().keySet().contains(DEVICE_PROPERTY_LIGHT_SUBDEVICE + 0)) {
-                                    logger.error("Subdevice request");
                                     state = connection.getLightGroupState(thing);
                                     brightness = connection.getLightGroupBrightness(thing);
                                 } else {
                                     state = connection.getBulbState(thing);
                                     brightness = connection.getBulbBrightness(thing);
+                                    color = connection.getBulbColor(thing);
                                 }
                                 if (state != null) {
-                                    updateState(thing.getChannel(CHANNEL_LIGHT_STATE).getUID(), state);
+                                    updateBulbState(thing.getChannel(CHANNEL_LIGHT_STATE).getUID(), state);
                                 }
                                 if (brightness != -1) {
                                     updateBrightness(thing.getChannel(CHANNEL_LIGHT_BRIGHTNESS).getUID(), brightness);
+                                }
+                                if (color != null) {
+                                    updateColor(thing.getChannel(CHANNEL_LIGHT_COLOR).getUID(), color);
                                 }
                             } catch (IOException | URISyntaxException e) {
                                 logger.error(e.getMessage());
@@ -224,58 +226,13 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
                 return;
             }
 
-            /*
-             * Runnable doRefresh = () -> {
-             * String state = "";
-             * try {
-             * if (!this.thing.getProperties().containsKey(DEVICE_PROPERTY_LIGHT_SUBDEVICE + "0")) {
-             * state = connection.getBulbState(this.thing);
-             * } else {
-             * state = connection.getLightGroupState(this.thing);
-             * }
-             * } catch (IOException e) {
-             * logger.error(e.getMessage());
-             * } catch (URISyntaxException e) {
-             * logger.error(e.getMessage());
-             * }
-             * updateState(this.thing.getChannel(CHANNEL_LIGHT_STATE).getUID(), state);
-             *
-             * int brightness = -1;
-             * try {
-             * if (!this.thing.getProperties().containsKey(DEVICE_PROPERTY_LIGHT_SUBDEVICE + "0")) {
-             * brightness = connection.getBulbBrightness(this.thing);
-             * } else {
-             * brightness = connection.getLightGroupBrightness(this.thing);
-             * }
-             * } catch (IOException e) {
-             * logger.error(e.getMessage());
-             * } catch (URISyntaxException e) {
-             * logger.error(e.getMessage());
-             * }
-             * updateBrightness(this.thing.getChannel(CHANNEL_LIGHT_BRIGHTNESS).getUID(), brightness);
-             * };
-             */
-
             if (command instanceof RefreshType) {
                 waitForUpdate = 0;
             }
 
-            /*
-             * if (waitForUpdate == 0) {
-             * doRefresh.run();
-             * } else {
-             * this.updateStateJob = scheduler.schedule(doRefresh, waitForUpdate, TimeUnit.MILLISECONDS);
-             * }
-             */
         } catch (Exception e) {
             logger.warn("Handle command failed {}", e);
         }
-        /*
-         * if (waitForUpdate >= 0) {
-         * this.updateStateJob = scheduler.schedule(() -> accountHandler.updateFlashBriefingHandlers(), waitForUpdate,
-         * TimeUnit.MILLISECONDS);
-         * }
-         */
 
         logger.trace("Command {} received from channel '{}'", command, channelUID);
         if (command instanceof RefreshType) {
@@ -283,7 +240,7 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         }
     }
 
-    public void updateState(ChannelUID channelUID, String command) {
+    public void updateBulbState(ChannelUID channelUID, String command) {
         if (channelUID == null) {
             logger.error("No channelUID specified. Could not update state.");
         } else {
@@ -301,6 +258,10 @@ public class SmartHomeDeviceHandler extends BaseThingHandler {
         } else {
             updateState(channelUID, new PercentType(brightness));
         }
+    }
+
+    public void updateColor(ChannelUID channelUID, String color) {
+        updateState(channelUID, new StringType(color));
     }
 
     public boolean initialize(AccountHandler handler) {

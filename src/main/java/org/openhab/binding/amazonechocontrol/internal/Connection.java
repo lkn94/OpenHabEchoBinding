@@ -1016,6 +1016,38 @@ public class Connection {
         return -1;
     }
 
+    public String getBulbColor(Thing device) throws IOException, URISyntaxException {
+        Map<String, String> props = device.getProperties();
+        String applianceId = props.get(DEVICE_PROPERTY_APPLIANCE_ID);
+
+        if (applianceId == null) {
+            return null;
+        }
+
+        String color = null;
+        if (device.getThingTypeUID().equals(THING_TYPE_LIGHT)) {
+            JsonArray capabilities = this.getBulbCapabilities(applianceId);
+
+            if (capabilities == null) {
+                return null;
+            }
+
+            for (JsonElement capability : capabilities) {
+                JsonObject capabilityObject = capability.getAsJsonObject();
+                if (capabilityObject.get("namespace").getAsString().equals("Alexa.ColorPropertiesController")) {
+                    try {
+                        color = capabilityObject.getAsJsonObject().get("value").getAsJsonObject().get("name")
+                                .getAsString();
+                    } catch (Exception e) {
+                        logger.error("getting bulb color failed {}", e);
+                    }
+                }
+            }
+        }
+
+        return color;
+    }
+
     public int getBulbBrightness(Thing device) throws IOException, URISyntaxException {
         Map<String, String> props = device.getProperties();
         String applianceId = props.get(DEVICE_PROPERTY_APPLIANCE_ID);
