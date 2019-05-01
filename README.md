@@ -1,6 +1,6 @@
 # Amazon Echo Control Binding
 
-This binding can control Amazon Echo devices (Alexa).
+This binding can control Amazon Echo devices (Alexa) and their smart bulbs.
 
 It provides features to control and view the current state of echo devices:
 
@@ -24,11 +24,18 @@ It provides features to control and view the current state of echo devices:
 - get last spoken voice command
 - change the volume of the alarm
 
-Also this binding includes the features to control your lights connected to your Echo device.
+Also this binding includes the features to control your lights connected to your Echo devices:
 
 - turn on/off your lights
 - change the color
 - control groups of lights or just single bulbs
+- receive the current state of the lights
+
+Restrictions:
+
+- groups can't receive their current color (multiple colors are possible)
+- lights can only receive their state every 30 seconds
+- turning on/off (or switch color, change brightness) will send a request for every single bulb in a group
 
 Some ideas what you can do in your home by using rules and other openHAB controlled devices:
 
@@ -49,6 +56,8 @@ With the possibility to control your lights you could do:
 - a scene-based configuration of your rooms
 - connect single bulbs to functions of openhab
 - simulate your presence at home
+- automaticly turn on your lights at the evening
+- integrate your smart bulbs with rules
 
 ## Note
 
@@ -85,7 +94,7 @@ But you can define any device listed in your alexa app with the best matching ex
 You will find the required serial number in settings of the device in the alexa app.
 
 Also you will see your lights in the inbox of openhab. They will automatically be discoverd by openhab based on your amazon login.
-If you configured any groups of lights in your amazon alexa app they will be discovered by openhab too. 
+If you configured any groups of lights in your amazon alexa app they will be discovered by openhab too.
 
 ## Binding Configuration
 
@@ -113,40 +122,44 @@ It will be configured at runtime by using the save channel to store the current 
 
 ## Channels
 
-| Channel Type ID       | Item Type | Access Mode | Thing Type | Description                                                                                                                                                                
-|-----------------------|-------------|-------------|------------|------------------------------------------------------------------------------------------
-| player                | Player      | R/W         | echo, echoshow, echospot, wha | Control the music player e.g. pause/continue/next track/previous track                                                                                                
-| volume                | Dimmer      | R/W         | echo, echoshow, echospot      | Control the volume                                                                                            
-| shuffle               | Switch      | R/W         | echo, echoshow, echospot, wha | Shuffle play if applicable, e.g. playing a playlist     
-| imageUrl              | String      | R           | echo, echoshow, echospot, wha | Url of the album image or radio station logo     
-| title                 | String      | R           | echo, echoshow, echospot, wha | Title of the current media     
-| subtitle1             | String      | R           | echo, echoshow, echospot, wha | Subtitle of the current media     
-| subtitle2             | String      | R           | echo, echoshow, echospot, wha | Additional subtitle of the current media     
-| providerDisplayName   | String      | R           | echo, echoshow, echospot, wha | Name of the music provider   
-| bluetoothMAC          | String      | R/W         | echo, echoshow, echospot      | Bluetooth device MAC. Used to connect to a specific device or disconnect if a empty string was provided
-| bluetooth             | Switch      | R/W         | echo, echoshow, echospot      | Connect/Disconnect to the last used bluetooth device (works after a bluetooth connection was established after the openHAB start) 
-| bluetoothDeviceName   | String      | R           | echo, echoshow, echospot      | User friendly name of the connected bluetooth device
-| radioStationId        | String      | R/W         | echo, echoshow, echospot, wha | Start playing of a TuneIn radio station by specifying it's id or stops playing if a empty string was provided
-| radio                 | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used TuneIn radio station (works after the radio station started after the openhab start)
-| amazonMusicTrackId    | String      | R/W         | echo, echoshow, echospot, wha | Start playing of a Amazon Music track by it's id od stops playing if a empty string was provided
+| Channel Type ID       | Item Type | Access Mode | Thing Type                    | Description                                                                                                                                                                
+|-----------------------|-------------|-----------|-------------------------------|-----------------------------------------------------------------------
+| player                | Player      | R/W       | echo, echoshow, echospot, wha | Control the music player e.g. pause/continue/next track/previous track                                                                                                
+| volume                | Dimmer      | R/W       | echo, echoshow, echospot      | Control the volume                                                                                            
+| shuffle               | Switch      | R/W       | echo, echoshow, echospot, wha | Shuffle play if applicable, e.g. playing a playlist     
+| imageUrl              | String      | R         | echo, echoshow, echospot, wha | Url of the album image or radio station logo     
+| title                 | String      | R         | echo, echoshow, echospot, wha | Title of the current media     
+| subtitle1             | String      | R         | echo, echoshow, echospot, wha | Subtitle of the current media     
+| subtitle2             | String      | R         | echo, echoshow, echospot, wha | Additional subtitle of the current media     
+| providerDisplayName   | String      | R         | echo, echoshow, echospot, wha | Name of the music provider   
+| bluetoothMAC          | String      | R/W       | echo, echoshow, echospot      | Bluetooth device MAC. Used to connect to a specific device or disconnect if a empty string was provided
+| bluetooth             | Switch      | R/W       | echo, echoshow, echospot      | Connect/Disconnect to the last used bluetooth device (works after a bluetooth connection was established after the openHAB start) 
+| bluetoothDeviceName   | String      | R         | echo, echoshow, echospot      | User friendly name of the connected bluetooth device
+| radioStationId        | String      | R/W       | echo, echoshow, echospot, wha | Start playing of a TuneIn radio station by specifying it's id or stops playing if a empty string was provided
+| radio                 | Switch      | R/W       | echo, echoshow, echospot, wha | Start playing of the last used TuneIn radio station (works after the radio station started after the openhab start)
+| amazonMusicTrackId    | String      | R/W       | echo, echoshow, echospot, wha | Start playing of a Amazon Music track by it's id od stops playing if a empty string was provided
 | amazonMusicPlayListId | String      | W         | echo, echoshow, echospot, wha | Write Only! Start playing of a Amazon Music playlist by specifying it's id od stops playing if a empty string was provided. Selection will only work in PaperUI
-| amazonMusic           | Switch      | R/W         | echo, echoshow, echospot, wha | Start playing of the last used Amazon Music song (works after at least one song was started after the openhab start)
-| remind                | String      | R/W         | echo, echoshow, echospot      | Write Only! Speak the reminder and sends a notification to the Alexa app (Currently the reminder is played and notified two times, this seems to be a bug in the amazon software)
+| amazonMusic           | Switch      | R/W       | echo, echoshow, echospot, wha | Start playing of the last used Amazon Music song (works after at least one song was started after the openhab start)
+| remind                | String      | R/W       | echo, echoshow, echospot      | Write Only! Speak the reminder and sends a notification to the Alexa app (Currently the reminder is played and notified two times, this seems to be a bug in the amazon software)
 | startRoutine          | String      | W         | echo, echoshow, echospot      | Write Only! Type in what you normally say to Alexa without the preceding "Alexa," 
-| musicProviderId       | String      | R/W         | echo, echoshow, echospot      | Current Music provider
+| musicProviderId       | String      | R/W       | echo, echoshow, echospot      | Current Music provider
 | playMusicVoiceCommand | String      | W         | echo, echoshow, echospot      | Write Only! Voice command as text. E.g. 'Yesterday from the Beatles' 
 | startCommand          | String      | W         | echo, echoshow, echospot      | Write Only! Used to start anything. Available options: Weather, Traffic, GoodMorning, SingASong, TellStory, FlashBriefing and FlashBriefing.<FlahshbriefingDeviceID> (Note: The options are case sensitive)
 | textToSpeech          | String      | W         | echo, echoshow, echospot      | Write Only! Write some text to this channel and alexa will speak it 
 | textToSpeechVolume    | Dimmer      | R/W       | echo, echoshow, echospot      | Volume of the textToSpeech channel, if 0 the current volume will be used
-| lastVoiceCommand      | String      | R/W         | echo, echoshow, echospot      | Last voice command spoken to the device. Writing to the channel starts voice output.
-| mediaProgress         | Dimmer      | R/W         | echo, echoshow, echospot      | Media progress in percent 
-| mediaProgressTime     | Number:Time | R/W         | echo, echoshow, echospot      | Media play time 
-| mediaLength           | Number:Time | R           | echo, echoshow, echospot      | Media length
-| notificationVolume    | Dimmer      | R           | echo, echoshow, echospot      | Notification volume
-| ascendingAlarm        | Switch      | R/W         | echo, echoshow, echospot      | Ascending alarm up to the configured volume
-| save                  | Switch      | W         | flashbriefingprofile     | Write Only! Stores the current configuration of flash briefings within the thing
-| active                | Switch      | R/W       | flashbriefingprofile     | Active the profile
-| playOnDevice          | String      | W         | flashbriefingprofile     | Specify the echo serial number or name to start the flash briefing. 
+| lastVoiceCommand      | String      | R/W       | echo, echoshow, echospot      | Last voice command spoken to the device. Writing to the channel starts voice output.
+| mediaProgress         | Dimmer      | R/W       | echo, echoshow, echospot      | Media progress in percent 
+| mediaProgressTime     | Number:Time | R/W       | echo, echoshow, echospot      | Media play time 
+| mediaLength           | Number:Time | R         | echo, echoshow, echospot      | Media length
+| notificationVolume    | Dimmer      | R         | echo, echoshow, echospot      | Notification volume
+| ascendingAlarm        | Switch      | R/W       | echo, echoshow, echospot      | Ascending alarm up to the configured volume
+| save                  | Switch      | W         | flashbriefingprofile          | Write Only! Stores the current configuration of flash briefings within the thing
+| active                | Switch      | R/W       | flashbriefingprofile          | Active the profile
+| playOnDevice          | String      | W         | flashbriefingprofile          | Specify the echo serial number or name to start the flash briefing. 
+| lightState            | Switch      | R/W       | light, lightGroup             | Shows and changes the state (ON/OFF) of your light or lightgroup
+| lightBrightness       | Dimmer      | R/W       | light, lightGroup             | Shows and changes the brightness of your light or lightgroup
+| lightColor            | String      | R/W       | light, lightGroup             | Shows and changes the color of your light (groups are not able to show their color!)
+| whiteTemperature      | String      | R/W       | light, lightGroup             | White temperatures of your lights
 
 ## Advanced Feature Technically Experienced Users
 
@@ -239,6 +252,12 @@ String FlashBriefing_Technical_Play   "Play (Write only)" { channel="amazonechoc
 Switch FlashBriefing_LifeStyle_Save   "Save (Write only)" { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:save"} 
 Switch FlashBriefing_LifeStyle_Active "Active" { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:active"}
 String FlashBriefing_LifeStyle_Play   "Play (Write only)" { channel="amazonechocontrol:flashbriefingprofile:account1:flashbriefing2:playOnDevice"}
+
+// Lights and lightgroups - you will find the applianceId in the properties of your light or lightgroup!
+Switch Light_State "On/Off" { channel="amazonechocontrol:lightGroup:account1:applianceId:lightState" }
+Dimmer Light_Brightness "Brightness" { channel="amazonechocontrol:lightGroup:account1:applianceId:lightBrightness" }
+String Light_Color "Color" { channel="amazonechocontrol:lightGroup:account1:applianceId:lightColor" }
+String Light_White "White temperature" { channel="amazonechocontrol:lightGroup:account1:applianceId:whiteTemperature" }
 ```
 
 ### amazonechocontrol.sitemap:
@@ -299,6 +318,13 @@ sitemap amazonechocontrol label="Echo Devices"
             Switch  item=FlashBriefing_LifeStyle_Active
             Text    item=FlashBriefing_LifeStyle_Play
         }
+		
+		Frame label="Lights and light groups" {
+			Switch item=Light_State
+			Slider item=Light_Brightness
+			Selection item=Light_Color mappings=[ ''='', 'red'='Red', 'crimson'='Crimson', 'salmon'='Salmon', 'orange'='Orange', 'gold'='Gold', 'yellow'='Yellow', 'green'='Green', 'turquoise'='Turquoise', 'cyan'='Cyan', 'sky_blue'='Sky Blue', 'blue'='Blue', 'purple'='Purple', 'magenta'='Magenta', 'pink'='Pink', 'lavender'='Lavender' ]
+			Selection item=Light_White mappings=[ ''='', 'warm_white'='Warm white', 'soft_white'='Soft white', 'white'='White', 'daylight_white'='Daylight white', 'cool_white'='Cool white' ]
+		}
 }
 ```
 
